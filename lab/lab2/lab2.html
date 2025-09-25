@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
     }
-    #McEniryMap, #MyNeighborhood {
+    #McEniryMap, #MyNeighborhood #KingCityHall {
       height: 50vh;
       width: 50%;
       margin-bottom: 20px;
@@ -87,10 +87,21 @@
       new google.maps.Map(document.getElementById("MyNeighborhood"), options);
     }
 
+   function initializeKingCityHall() {
+      var latlng = new google.maps.LatLng(36.279574657605025, -80.35947787365268);
+      var options = {
+        zoom: 18,
+        center: latlng,
+        mapTypeId: google.maps.MapTypeId.HYBRID
+      };
+      new google.maps.Map(document.getElementById("KingCityHall"), options);
+    }
+    
     // Call functions on window load
     window.onload = function () {
       initializeMcEniryMap();
       initializeMyNeighborhood();
+      initializeKingCityHall();
     };
   </script>
 </body>
