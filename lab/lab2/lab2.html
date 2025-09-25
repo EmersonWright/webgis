@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
     }
-    #McEniryMap, #MyNeighborhood #KingCityHall #Merriwood #Pfafftown{
+    #McEniryMap, #MyNeighborhood, #KingCityHall, #PilotMountain, #Merriwood, #Pfafftown {
       height: 50vh;
       width: 50%;
       margin-bottom: 20px;
@@ -54,13 +54,24 @@
     document.write(x3);
   </script>
 
-  <!-- Interactive Map (McEniry) -->
+  <!-- Interactive Maps -->
   <h3>Interactive Map (Google Maps - McEniry)</h3>
   <div id="McEniryMap"></div>
 
-  <!-- Interactive Map (My Neighborhood) -->
   <h3>Interactive Map of My Neighborhood</h3>
   <div id="MyNeighborhood"></div>
+
+  <h3>King City Hall</h3>
+  <div id="KingCityHall"></div>
+
+  <h3>Pilot Mountain</h3>
+  <div id="PilotMountain"></div>
+
+  <h3>Merriwood</h3>
+  <div id="Merriwood"></div>
+
+  <h3>Pfafftown</h3>
+  <div id="Pfafftown"></div>
 
   <!-- Load Google Maps API -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-F0yMeAcbSh_XYD1h4Xx6tKBVhz6w6K0"></script>
@@ -69,61 +80,40 @@
   <script type="text/javascript">
     function initializeMcEniryMap() {
       var latlng = new google.maps.LatLng(35.306840, -80.732000);
-      var options = {
-        zoom: 16,
-        center: latlng,
-        mapTypeId: google.maps.MapTypeId.HYBRID
-      };
+      var options = { zoom: 16, center: latlng, mapTypeId: google.maps.MapTypeId.HYBRID };
       new google.maps.Map(document.getElementById("McEniryMap"), options);
     }
 
     function initializeMyNeighborhood() {
       var latlng = new google.maps.LatLng(36.20882301717771, -79.99913597949003);
-      var options = {
-        zoom: 15,
-        center: latlng,
-        mapTypeId: google.maps.MapTypeId.HYBRID
-      };
+      var options = { zoom: 15, center: latlng, mapTypeId: google.maps.MapTypeId.HYBRID };
       new google.maps.Map(document.getElementById("MyNeighborhood"), options);
     }
 
-   function initializeKingCityHall() {
+    function initializeKingCityHall() {
       var latlng = new google.maps.LatLng(36.279574657605025, -80.35947787365268);
-      var options = {
-        zoom: 18,
-        center: latlng,
-        mapTypeId: google.maps.MapTypeId.HYBRID
-      };
+      var options = { zoom: 18, center: latlng, mapTypeId: google.maps.MapTypeId.HYBRID };
       new google.maps.Map(document.getElementById("KingCityHall"), options);
     }
 
     function initializePilotMountain() {
       var latlng = new google.maps.LatLng(36.34158453663699, -80.47445053436842);
-      var options = {
-        zoom: 14,
-        center: latlng,
-        mapTypeId: google.maps.MapTypeId.HYBRID
-      };
+      var options = { zoom: 14, center: latlng, mapTypeId: google.maps.MapTypeId.HYBRID };
       new google.maps.Map(document.getElementById("PilotMountain"), options);
+    }
 
-function initializeMerriwood() {
+    function initializeMerriwood() {
       var latlng = new google.maps.LatLng(36.03575793903049, -80.43327068598204);
-      var options = {
-        zoom: 17,
-        center: latlng,
-        mapTypeId: google.maps.MapTypeId.HYBRID
-      };
+      var options = { zoom: 17, center: latlng, mapTypeId: google.maps.MapTypeId.HYBRID };
       new google.maps.Map(document.getElementById("Merriwood"), options);
+    }
 
-  function initializePfafftown() {
+    function initializePfafftown() {
       var latlng = new google.maps.LatLng(36.14923259916068, -80.38700124667336);
-      var options = {
-        zoom: 17,
-        center: latlng,
-        mapTypeId: google.maps.MapTypeId.HYBRID
-      };
+      var options = { zoom: 17, center: latlng, mapTypeId: google.maps.MapTypeId.HYBRID };
       new google.maps.Map(document.getElementById("Pfafftown"), options);
-      
+    }
+
     // Call functions on window load
     window.onload = function () {
       initializeMcEniryMap();
