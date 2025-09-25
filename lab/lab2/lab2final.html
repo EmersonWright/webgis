@@ -57,5 +57,26 @@ mapTypeId:google.maps.MapTypeId.HYBRID };
  new google.maps.Map(document.getElementById("map_canvas"), myOptions);
  }
 </script>
+</div>
+<h3>Interactive Map of My Neighborhood</h3>
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <style>
+ html { height:100% }
+ body { height:100%; margin:0; padding:0 }
+ #map_canvas { height:50vh; width:50% }
+</style>
+<script 
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-F0yMeAcbSh_XYD1h4Xx6tKBVhz6w6K0"></script>
+<script>
+ function initialize() {
+ var latlng = new google.maps.LatLng(36.20882301717771, -79.99913597949003);
+var myOptions = { 
+zoom:15, 
+center:latlng, 
+mapTypeId:google.maps.MapTypeId.HYBRID };
+ new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+ }
+</script>
+</div>
 </body>
 </html>
