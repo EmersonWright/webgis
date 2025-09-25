@@ -38,7 +38,7 @@ var x3=mul2(200,300);
 document.write(x3);
 </script>
 <h3>Interactive Map (Google Maps)</h3>
-<div id="map_canvas" style="width:50%; height:50%"></div>
+<div id="McEniryMap" style="width:50%; height:50%"></div>
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <style>
  html { height:100% }
@@ -54,7 +54,7 @@ var myOptions = {
 zoom:16, 
 center:latlng, 
 mapTypeId:google.maps.MapTypeId.HYBRID };
- new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+ new google.maps.Map(document.getElementById("McEniryMap"), myOptions);
  }
 </script>
 </div>
@@ -80,5 +80,13 @@ mapTypeId:google.maps.MapTypeId.HYBRID };
 <div id="MyNeighborhood" style="width:50%; height:50%"></div>
 </script>
 </div>
+ <script>window.onload=function() {
+ initializeMcEniryMap
+ initializeMyNeighborhood
+ 
+ 
+ 
+}
+ </script>
 </body>
 </html>
