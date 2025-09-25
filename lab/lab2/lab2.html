@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
     }
-    #McEniryMap, #MyNeighborhood #KingCityHall {
+    #McEniryMap, #MyNeighborhood #KingCityHall #Merriwood #Pfafftown{
       height: 50vh;
       width: 50%;
       margin-bottom: 20px;
@@ -96,12 +96,42 @@
       };
       new google.maps.Map(document.getElementById("KingCityHall"), options);
     }
-    
+
+    function initializePilotMountain() {
+      var latlng = new google.maps.LatLng(36.34158453663699, -80.47445053436842);
+      var options = {
+        zoom: 14,
+        center: latlng,
+        mapTypeId: google.maps.MapTypeId.HYBRID
+      };
+      new google.maps.Map(document.getElementById("PilotMountain"), options);
+
+function initializeMerriwood() {
+      var latlng = new google.maps.LatLng(36.03575793903049, -80.43327068598204);
+      var options = {
+        zoom: 17,
+        center: latlng,
+        mapTypeId: google.maps.MapTypeId.HYBRID
+      };
+      new google.maps.Map(document.getElementById("Merriwood"), options);
+
+  function initializePfafftown() {
+      var latlng = new google.maps.LatLng(36.14923259916068, -80.38700124667336);
+      var options = {
+        zoom: 17,
+        center: latlng,
+        mapTypeId: google.maps.MapTypeId.HYBRID
+      };
+      new google.maps.Map(document.getElementById("Pfafftown"), options);
+      
     // Call functions on window load
     window.onload = function () {
       initializeMcEniryMap();
       initializeMyNeighborhood();
       initializeKingCityHall();
+      initializePilotMountain();
+      initializeMerriwood();
+      initializePfafftown();
     };
   </script>
 </body>
