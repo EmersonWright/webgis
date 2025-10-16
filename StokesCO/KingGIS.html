@@ -2,84 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>King, NC Map — Stokes County Data</title>
+  <title>King, NC GIS Viewer (Stokes County Data)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="https://js.arcgis.com/3.31/dijit/themes/claro/claro.css">
   <link rel="stylesheet" href="https://js.arcgis.com/3.31/esri/css/esri.css">
   <style>
     html, body, #mapDiv {
-      height: 100%; width: 100%; margin: 0; padding: 0;
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
     }
   </style>
 
   <script>
-    var dojoConfig = {
-      parseOnLoad: true
-    };
+    var dojoConfig = { parseOnLoad: true };
   </script>
   <script src="https://js.arcgis.com/3.31/"></script>
 </head>
+
 <body class="claro">
   <div id="mapDiv"></div>
 
   <script>
     require([
       "esri/map",
-      "esri/layers/ArcGISDynamicMapServiceLayer",
-      "esri/dijit/Legend",
-      "esri/geometry/Extent",
-      "esri/SpatialReference",
+      "esri/layers/FeatureLayer",
+      "esri/tasks/query",
+      "esri/tasks/QueryTask",
+      "esri/symbols/SimpleFillSymbol",
+      "esri/symbols/SimpleLineSymbol",
+      "esri/Color",
       "dojo/domReady!"
-    ], function(Map, ArcGISDynamicMapServiceLayer, Legend, Extent, SpatialReference) {
+    ], function(
+      Map, FeatureLayer, Query, QueryTask,
+      SimpleFillSymbol, SimpleLineSymbol, Color
+    ) {
 
-      // Create map (you may want to adjust center & zoom)
+      // Initialize map centered on Stokes County
       var map = new Map("mapDiv", {
         basemap: "streets",
-        // you can center at King, NC or at the extent of Stokes and let filters limit content
-        center: [-80.3595, 36.2818],  // lon, lat of King, NC (approx)
-        zoom: 13
+        center: [-80.3595, 36.2818], // King, NC coordinates
+        zoom: 12
       });
 
-      // URL of the AllLayers service from Stokes GIS
-      var serviceUrl = "https://stokescountygis.com/server/rest/services/AllLayers/MapServer";
+      // City Limits layer (index 16 in the AllLayers service)
+      var cityLimitsUrl = "https://stokescountygis.com/server/rest/services/AllLayers/MapServer/16";
 
-      var dynLayer = new ArcGISDynamicMapServiceLayer(serviceUrl, {
-        opacity: 1.0,
-        visible: true
+      // Query for King city boundary
+      var queryTask = new QueryTask(cityLimitsUrl);
+      var query = new Query();
+      query.where = "CITY_NAME = 'King' OR NAME = 'King'"; // try both possible field names
+      query.outFields = ["*"];
+      query.returnGeometry = true;
+
+      queryTask.execute(query, function(results) {
+        if (results.features.length > 0) {
+          var feature = results.features[0];
+
+          // Symbolize the King boundary
+          var symbol = new SimpleFillSymbol(
+            SimpleFillSymbol.STYLE_SOLID,
+            new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 255]), 2),
+            new Color([0, 0, 255, 0.15])
+          );
+          feature.setSymbol(symbol);
+
+          // Add to map and zoom to it
+          map.graphics.add(feature);
+          map.setExtent(feature.geometry.getExtent().expand(1.2));
+        } else {
+          alert("No King city boundary found in City Limits layer.");
+        }
       });
 
-      // When the layer loads, set sublayer definition/filter
-      dynLayer.on("load", function() {
-        // Inspect sublayers to see which index corresponds to parcels or features with city name
-        // For example, assume sublayer index 0 or 2 etc
-        
-        var defs = [];
-        // Suppose sublayer 2 is Parcels with city field “CITY_NAME”
-        // We will filter that sublayer only to King
-        defs[2] = "CITY_NAME = 'King'";  
-        // If there are others you wish to filter, add them similarly
-        // e.g. defs[3] = "CITY_NAME = 'King'"
-
-        dynLayer.setLayerDefinitions(defs);
-      });
-
-      map.addLayer(dynLayer);
-
-      // Optionally add a legend
-      var legend = new Legend({
-        map: map,
-        layerInfos: [
-          { layer: dynLayer, title: "Stokes GIS (filtered to King)" }
-        ]
-      }, "legendDiv");
-      map.on("layers-add-result", function() {
-        legend.startup();
-      });
+      // (Optional) You can also add parcels or structures filtered to King later
+      // Example: var parcels = new FeatureLayer("https://stokescountygis.com/server/rest/services/AllLayers/MapServer/24");
+      // parcels.setDefinitionExpression("CITY_NAME = 'King'");
+      // map.addLayer(parcels);
 
     });
   </script>
-
-  <div id="legendDiv" style="position: absolute; bottom: 10px; right: 10px; background: white; padding: 5px;"></div>
 </body>
 </html>
