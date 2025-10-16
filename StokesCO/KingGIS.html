@@ -2,161 +2,180 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Stokes County Parcels — King, NC</title>
+  <title>Parcels in King, NC — Stokes County</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
-    body, html { height:100%; margin:0; }
-    #map { height:100%; width:100%; }
-    .searchbar {
+    body, html { height:100%; margin:0; padding:0; }
+    #map { position: absolute; top:0; bottom:0; width:100%; }
+    .control-panel {
       position: absolute;
-      top: 10px; left: 50px;
+      top: 10px;
+      left: 50px;
       z-index: 1000;
-      background: white;
-      padding: 8px;
+      background: rgba(255,255,255,0.9);
+      padding: 10px 12px;
       border-radius: 6px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.25);
-      font-family: Arial, sans-serif;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      font-family: “Segoe UI”, Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 14px;
     }
-    .searchbar input { width:240px; padding:6px; margin-right:6px; }
-    .searchbar button { padding:6px 8px; }
+    .control-panel input {
+      padding: 6px;
+      font-size: 14px;
+      width: 200px;
+      margin-right: 6px;
+    }
+    .control-panel button {
+      padding: 6px 10px;
+      font-size: 14px;
+      margin-right: 4px;
+    }
+    .leaflet-control-attribution { font-size: 11px; }
   </style>
 </head>
 <body>
-  <div class="searchbar">
-    <input id="qtext" placeholder="Search Parcel Number or Owner (e.g. 123456 or SMITH)" />
-    <button id="searchBtn">Search</button>
-    <button id="resetBtn">Reset</button>
-  </div>
   <div id="map"></div>
+  <div class="control-panel">
+    <input id="qtext" placeholder="Parcel Number (e.g. 12345)" />
+    <button id="searchBtn">Lookup</button>
+    <button id="resetBtn">Show All in King</button>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/esri-leaflet@3.0.4/dist/esri-leaflet.js"></script>
-
   <script>
-  // --- Configuration: change if needed ---
+  // ============ Configuration ================
   const PARCEL_LAYER_URL = 'https://stokescountygis.com/server/rest/services/Parcels/MapServer/0';
-  // --- End configuration ---
+  const KING_FIELD = 'MUNICIPALITY';        // field name that holds town name / municipality
+  const KING_VALUE = 'King';               // the value identifying King, NC in that field
+  const PARCEL_NUMBER_FIELD = 'PARCEL_NUMBER'; // field for parcel number
+  const OWNER_FIELD = 'PROPERTY_OWNER_1';
+  const ADDRESS_FIELD = 'PHYSICAL_ADDRESS'; // or a combination of address fields if needed
+  const ACREAGE_FIELD = 'CALCULATED_ACREAGE';
+  const VALUE_FIELD = 'TOTAL_PROPERTY_VALUE';
+  const DEED_FIELD = 'DEED_DATE';
+  // ============================================
 
-  // create map and basemap
-  const map = L.map('map').setView([36.4, -80.25], 11); // center roughly in Stokes County
+  const map = L.map('map').setView([36.4, -80.25], 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  // make an Esri feature layer (fetches features on demand for visible extent)
+  // Feature layer filtered to only King parcels
   const parcelLayer = L.esri.featureLayer({
     url: PARCEL_LAYER_URL,
-    simplifyFactor: 0.5,
+    where: `${KING_FIELD} = '${KING_VALUE}'`,
+    simplifyFactor: 0.4,
     precision: 5,
-    style: function () {
+    style: function(feature) {
       return {
-        color: '#2b7bba', // outlines
-        weight: 1,
-        fillOpacity: 0.05
+        color: '#005a8d',
+        weight: 1.5,
+        fillOpacity: 0.15,
+        fillColor: '#4da6ff'
       };
+    },
+    pointToLayer: null, // polygons only
+    onEachFeature: function(feature, layer) {
+      layer.on('click', function(e) {
+        const html = popupHtml(feature.properties);
+        layer.bindPopup(html, {maxWidth: 300}).openPopup();
+      });
     }
   }).addTo(map);
 
-  // Popup template - fields available (see Stokes Parcels layer fields). We'll show the most useful ones:
-  function parcelPopupHtml(props) {
-    // guard for missing fields
-    const p = props || {};
-    const owner = p.PROPERTY_OWNER_1 || 'Unknown owner';
-    const addr = p.PHYSICAL_ADDRESS || [
-      p.PHYS_ADDR_STREET_NUMBER || '', p.PHYS_ADDR_STREET_NAME || '', p.PHYS_ADDR_STREET_TYPE || ''
-    ].join(' ').trim() || (p.PHYS_ADDR_CITY ? p.PHYS_ADDR_CITY : 'No physical address');
-    const parcel = p.PARCEL_NUMBER || p.PIN || 'n/a';
-    const acres = (p.CALCULATED_ACREAGE ?? p.ACREAGE ?? p.TOTAL_ACREAGE) || 'n/a';
-    const value = p.TOTAL_PROPERTY_VALUE ? '$' + Number(p.TOTAL_PROPERTY_VALUE).toLocaleString() : 'n/a';
-    const deedDate = p.DEED_DATE ? new Date(p.DEED_DATE).toLocaleDateString() : 'n/a';
+  // Popup HTML
+  function popupHtml(p) {
+    const owner = p[OWNER_FIELD] || 'Unknown Owner';
+    // for address, some services may have PHYSICAL_ADDRESS, else combination
+    const addr = p[ADDRESS_FIELD] ||
+                 [p.PHYS_ADDR_STREET_NUMBER, p.PHYS_ADDR_STREET_NAME, p.PHYS_ADDR_STREET_TYPE]
+                    .filter(x => x).join(' ') ||
+                 'No address';
+    const pin = p[PARCEL_NUMBER_FIELD] || 'n/a';
+    const acres = p[ACREAGE_FIELD] !== undefined ? p[ACREAGE_FIELD].toFixed(2) : 'n/a';
+    const val = p[VALUE_FIELD] ? '$' + Number(p[VALUE_FIELD]).toLocaleString() : 'n/a';
+    const deed = p[DEED_FIELD] ? new Date(p[DEED_FIELD]).toLocaleDateString() : 'n/a';
 
     return `
-      <div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.25">
+      <div style="font-family:Arial, sans-serif; font-size:13px;">
         <strong>${owner}</strong><br/>
-        <small>${addr}</small><br/><hr style="margin:6px 0"/>
-        <b>Parcel:</b> ${parcel}<br/>
+        <em>${addr}</em><br/><hr style="margin:6px 0"/>
+        <b>Parcel #:</b> ${pin}<br/>
         <b>Acreage:</b> ${acres}<br/>
-        <b>Assessed value:</b> ${value}<br/>
-        <b>Deed date:</b> ${deedDate}
+        <b>Value:</b> ${val}<br/>
+        <b>Deed date:</b> ${deed}
       </div>
     `;
   }
 
-  // open popup on feature click
-  parcelLayer.on('click', function(evt) {
-    const props = evt.layer.properties || evt.layer.feature && evt.layer.feature.properties;
-    const html = parcelPopupHtml(props);
-    L.popup({maxWidth:360}).setLatLng(evt.latlng).setContent(html).openOn(map);
-  });
-
-  // when layer loads for the first time, fit to its bounds (optional)
+  // After loading, fit to King bounds
   parcelLayer.on('load', function() {
-    // don't auto-zoom on every tile load; this only runs when initial metadata is ready
-    // to avoid overwhelming view, we do not fetch all features here
+    // optionally zoom to all King parcels
+    map.fitBounds(parcelLayer.getBounds(), {padding: [20,20]});
   });
 
-  // Utility: run a server-side query and show results (supports owner or parcel number searches)
-  async function runSearch(q) {
-    if (!q || q.trim().length === 0) return;
-    const clean = q.trim().replace(/'/g,"''"); // escape single quotes for SQL
-    // Build a where clause that looks for exact parcel number OR owner name contains
-    // NOTE: field names come from Stokes Parcels layer (PROPERTY_OWNER_1, PARCEL_NUMBER, PIN, etc.)
-    // We'll search parcel-number style as exact match OR owner/or partial match (ILIKE isn't supported, so use LIKE)
-    const where = `(UPPER(PARCEL_NUMBER) = UPPER('${clean}') OR UPPER(PIN) = UPPER('${clean}') OR UPPER(PROPERTY_OWNER_1) LIKE UPPER('%${clean}%') OR UPPER(PROPERTY_OWNER_2) LIKE UPPER('%${clean}%'))`;
-
-    // Query endpoint that returns geojson (will respect server maxRecordCount, so we limit to first 5000)
-    const queryUrl = PARCEL_LAYER_URL + '/query?where=' + encodeURIComponent(where) +
-                     '&outFields=*' +
-                     '&f=geojson' +
-                     '&returnGeometry=true' +
-                     '&resultRecordCount=5000';
+  // ---- Search / lookup by parcel number ----
+  async function lookupParcel(parcelNum) {
+    const clean = parcelNum.trim().replace(/'/g, "''");
+    if (!clean) {
+      alert('Enter a parcel number.');
+      return;
+    }
+    // Query only within King
+    const where = `${KING_FIELD} = '${KING_VALUE}' AND UPPER(${PARCEL_NUMBER_FIELD}) = UPPER('${clean}')`;
+    const queryUrl = PARCEL_LAYER_URL + '/query?' +
+      'where=' + encodeURIComponent(where) +
+      '&outFields=*&returnGeometry=true&f=geojson';
 
     try {
       const resp = await fetch(queryUrl);
-      if (!resp.ok) throw new Error('Server returned ' + resp.status);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const geojson = await resp.json();
-      if (!geojson || !geojson.features || geojson.features.length === 0) {
-        alert('No parcels found for "' + q + '". Try a different parcel number or owner name.');
+      if (!geojson.features || geojson.features.length === 0) {
+        alert('Parcel not found in King: ' + clean);
         return;
       }
-      // Remove any previous results layer
-      if (window.searchResultsLayer) {
-        map.removeLayer(window.searchResultsLayer);
+      // remove previous search highlight
+      if (window.searchLayer) {
+        map.removeLayer(window.searchLayer);
       }
-      // show results with a highlighted style
-      window.searchResultsLayer = L.geoJSON(geojson, {
-        style: function() { return {color:'#ff7800', weight:2, fillOpacity:0.12}; },
-        onEachFeature: function(feature, layer) {
-          layer.bindPopup(parcelPopupHtml(feature.properties));
+      window.searchLayer = L.geoJSON(geojson, {
+        style: {
+          color: '#ff0000',
+          weight: 2,
+          fillOpacity: 0.2,
+          fillColor: '#ff6666'
+        },
+        onEachFeature: function(feat, lay) {
+          lay.bindPopup(popupHtml(feat.properties), {maxWidth:300});
         }
       }).addTo(map);
-      // fit map to result bounds
-      map.fitBounds(window.searchResultsLayer.getBounds(), {padding:[20,20]});
+      map.fitBounds(window.searchLayer.getBounds(), {padding:[20,20]});
     } catch (err) {
-      console.error(err);
-      alert('Search failed: ' + err.message + '. If CORS or network errors occur, try hosting this file on a small web server (see instructions).');
+      console.error('Lookup error', err);
+      alert('Lookup failed: ' + err.message);
     }
   }
 
-  // UI handlers
-  document.getElementById('searchBtn').addEventListener('click', function() {
+  document.getElementById('searchBtn').addEventListener('click', () => {
     const q = document.getElementById('qtext').value;
-    runSearch(q);
+    lookupParcel(q);
   });
-  document.getElementById('qtext').addEventListener('keyup', function(e){
-    if (e.key === 'Enter') runSearch(this.value);
-  });
-  document.getElementById('resetBtn').addEventListener('click', function(){
-    document.getElementById('qtext').value = '';
-    if (window.searchResultsLayer) { map.removeLayer(window.searchResultsLayer); window.searchResultsLayer = null; }
-    // optionally zoom back to county extent:
-    // map.setView([36.4, -80.25], 11);
+  document.getElementById('qtext').addEventListener('keyup', e => {
+    if (e.key === 'Enter') lookupParcel(e.target.value);
   });
 
-  // Helpful note: If you want parcel labels (parcel number) only when zoomed in, you can add logic that queries parcel attribute(s)
-  // for the visible bbox and draws small labels. Esri-Leaflet's featureLayer already requests features for the current view as you pan/zoom.
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    // Remove search highlight
+    if (window.searchLayer) {
+      map.removeLayer(window.searchLayer);
+    }
+    // Zoom back to King parcels
+    map.fitBounds(parcelLayer.getBounds(), {padding:[20,20]});
+  });
   </script>
 </body>
 </html>
