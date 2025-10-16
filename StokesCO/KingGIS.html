@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>King, NC Parcels – Interactive Selection</title>
+  <title>King, NC Parcels – Interactive Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
   <style>
@@ -52,10 +52,10 @@
 <body>
   <div id="map"></div>
   <div class="control-panel">
-    <input id="qtext" placeholder="Parcel Number (e.g. 12345)" />
+    <input id="qtext" placeholder="Parcel Number (e.g. 5957)" />
     <button id="searchBtn">Lookup</button>
     <button id="resetBtn">Show All</button>
-    <button id="clearBtn">Clear Selection</button>
+    <button id="clearBtn">Clear</button>
   </div>
   <div id="selected-info">
     <strong>Selected Parcels:</strong>
@@ -67,8 +67,8 @@
   <script src="https://unpkg.com/esri-leaflet@3.0.4/dist/esri-leaflet.js"></script>
   <script>
   // --- CONFIGURATION ---
-  const SERVICE_URL = 'https://stokescountygis.com/server/rest/services/Parcels/MapServer/0';
-  const TOWN_FIELD = 'MUNICIPALITY';  // adjust if your service uses CITY or TOWN_NAME
+  const SERVICE_URL = 'https://stokescountygis.com/arcgis/rest/services/Parcels/MapServer/0';
+  const TOWN_FIELD = 'MUNICIPALITY';
   const TOWN_VALUE = 'King';
   const PARCEL_FIELD = 'PARCEL_NUMBER';
   const OWNER_FIELD = 'PROPERTY_OWNER_1';
@@ -78,9 +78,10 @@
   const DEED_FIELD = 'DEED_DATE';
   // -----------------------
 
-  const map = L.map('map').setView([36.28, -80.36], 13);
+  const map = L.map('map').setView([36.28, -80.36], 14);
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
+    maxZoom: 20,
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
@@ -91,10 +92,10 @@
     simplifyFactor: 0.4,
     precision: 5,
     style: {
-      color: "#1e6ab0",
+      color: "#005fbf",
       weight: 1,
-      fillColor: "#4fa3ff",
-      fillOpacity: 0.1
+      fillColor: "#66aaff",
+      fillOpacity: 0.15
     }
   }).addTo(map);
 
@@ -103,7 +104,7 @@
     style: { color: 'yellow', weight: 2, fillOpacity: 0.3 }
   }).addTo(map);
 
-  // Popup info builder
+  // Popup info
   function popupHtml(p) {
     const addr = p[ADDRESS_FIELD] || 'No address';
     const owner = p[OWNER_FIELD] || 'Unknown owner';
@@ -121,11 +122,10 @@
       </div>`;
   }
 
-  // Click to select parcel
   parcels.on('click', e => {
     const props = e.layer.feature.properties;
     const geojson = e.layer.toGeoJSON();
-    selectedLayer.addData(geojson);
+    selectedLayer.clearLayers().addData(geojson);
     updateSelectedList();
     L.popup({maxWidth: 300})
       .setLatLng(e.latlng)
@@ -133,7 +133,7 @@
       .openOn(map);
   });
 
-  // Rectangle draw for multi-select
+  // --- Rectangle draw for multi-select ---
   const drawControl = new L.Control.Draw({
     draw: {
       polygon: false, polyline: false, circle: false, marker: false, circlemarker: false,
@@ -145,17 +145,14 @@
 
   map.on(L.Draw.Event.CREATED, function(e) {
     const bounds = e.layer.getBounds();
-    // Query parcels inside the drawn rectangle
-    L.esri.query({
-      url: SERVICE_URL
-    })
-    .where(`${TOWN_FIELD}='${TOWN_VALUE}'`)
-    .within(bounds)
-    .run((error, fc) => {
-      if (error) { console.error(error); return; }
-      selectedLayer.addData(fc);
-      updateSelectedList();
-    });
+    L.esri.query({ url: SERVICE_URL })
+      .where(`${TOWN_FIELD}='${TOWN_VALUE}'`)
+      .within(bounds)
+      .run((error, fc) => {
+        if (error) { console.error(error); return; }
+        selectedLayer.clearLayers().addData(fc);
+        updateSelectedList();
+      });
   });
 
   // --- Lookup by parcel number ---
@@ -190,7 +187,6 @@
     updateSelectedList();
   };
 
-  // --- Display selected parcels list ---
   function updateSelectedList() {
     const div = document.getElementById('parcel-list');
     const feats = selectedLayer.toGeoJSON().features;
@@ -204,8 +200,6 @@
               </div>`;
     }).join('');
   }
-
-    ?f=json
 
   parcels.once('load', () => {
     map.fitBounds(parcels.getBounds(), {padding:[20,20]});
