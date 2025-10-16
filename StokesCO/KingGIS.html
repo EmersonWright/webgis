@@ -205,6 +205,8 @@
     }).join('');
   }
 
+    ?f=json
+
   parcels.once('load', () => {
     map.fitBounds(parcels.getBounds(), {padding:[20,20]});
   });
