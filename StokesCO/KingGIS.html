@@ -1,128 +1,85 @@
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv='X-UA-Compatible' content='IE=Edge, chrome=1'>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-   
-    <!-- On iOS, as part of optimizing your web application, have it use the
-    standalone mode to look more like a native application. When you use this
-    standalone mode, Safari is not used to display the web content�specifically,
-    there is no browser URL text field at the top of the screen or button bar
-    at the bottom of the screen. -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <!-- Controls the dimensions and scaling of the browser this in iOS,
-    Android, webOS, Opera Mini, Opera Mobile and Blackberry. width: controls
-    the width of the viewport initial-scale: controls the zoom level when the
-    page is first loaded maximum-scale: control how users are allowed to zoom
-    the page in or out user-scalable: control how users are allowed to zoom
-    the page in or out -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <!-- Sets the style of the status bar for a web application when in standalone mode -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <title>Stokes County, North Carolina GIS</title>
-    <link rel="stylesheet" href="https://js.arcgis.com/3.31/dijit/themes/claro/claro.css">
-    <!--<link href="dojo-theme-flat-master/CSS/dojo/flat.css" rel="stylesheet" />-->
-    <link rel="stylesheet" href="https://js.arcgis.com/3.31/esri/css/esri.css">
-    <link rel="stylesheet" href="css/layout.css" />
-    <link href="css/bootstrap.css" rel="stylesheet" />
-    <link href="js/bootstrap-dialog/css/bootstrap-dialog.min.css" rel="stylesheet" />
+  <meta charset="utf-8" />
+  <title>King, NC Map — Stokes County Data</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <style type="text/css">
-        #main-loading {
-            background-color: #428bca;
-        }
-    </style>
-    <script type="text/javascript">
-        var path_location = location.pathname.replace(/\/[^/]+$/, '');
-        if (path_location == '/') {
-            path_location = "";
-        }
-        var dojoConfig = {
-            parseOnLoad: true,
-            cacheBust: true,
-            packages: [
-                {
-                    name: "extras",
-                    location: path_location + "/extras"
-                }
-            ]
-        };
+  <link rel="stylesheet" href="https://js.arcgis.com/3.31/dijit/themes/claro/claro.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/3.31/esri/css/esri.css">
+  <style>
+    html, body, #mapDiv {
+      height: 100%; width: 100%; margin: 0; padding: 0;
+    }
+  </style>
 
-    </script>
-
+  <script>
+    var dojoConfig = {
+      parseOnLoad: true
+    };
+  </script>
+  <script src="https://js.arcgis.com/3.31/"></script>
 </head>
-
 <body class="claro">
+  <div id="mapDiv"></div>
 
+  <script>
+    require([
+      "esri/map",
+      "esri/layers/ArcGISDynamicMapServiceLayer",
+      "esri/dijit/Legend",
+      "esri/geometry/Extent",
+      "esri/SpatialReference",
+      "dojo/domReady!"
+    ], function(Map, ArcGISDynamicMapServiceLayer, Legend, Extent, SpatialReference) {
 
-    <div id="main-loading">
+      // Create map (you may want to adjust center & zoom)
+      var map = new Map("mapDiv", {
+        basemap: "streets",
+        // you can center at King, NC or at the extent of Stokes and let filters limit content
+        center: [-80.3595, 36.2818],  // lon, lat of King, NC (approx)
+        zoom: 13
+      });
 
-        <!-- This is section you can modify to customize the loading page -->
-        <div id="app-loading"></div>
-        <div id="loading-gif"></div>
+      // URL of the AllLayers service from Stokes GIS
+      var serviceUrl = "https://stokescountygis.com/server/rest/services/AllLayers/MapServer";
 
-        <!-- //////////////////    END    ////////////////////////////// -->
-        <div id="ie-note" style="display:none;">
-            <div class="hint-title">Error</div>
-            <div class="hint-img">Your browser is currently not supported.</div>
-            <p class="hint-text">
-                <span>
-                    Please note that creating presentations is not supported in Internet Explorer versions 6, 7.
-                </span>
-                <br>
-                <span>
-                    We recommend upgrading to the latest Internet Explorer, Google Chrome, or Firefox.
-                </span>
-                <br>
-                <span>
-                    If you are using IE 8 or later, make sure you turn off "Compatibility View".
-                </span>
-            </p>
-        </div>
-    </div>
+      var dynLayer = new ArcGISDynamicMapServiceLayer(serviceUrl, {
+        opacity: 1.0,
+        visible: true
+      });
 
-    <script src="js/jquery.js"></script>
-    <script src="js/jquery-ui.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/bootstrap-dialog/js/bootstrap-dialog.min.js"></script>
-    <script>
-        $.fn.bootstrapBtn = $.fn.button.noConflict();
-    </script>
-    <script type="text/javascript" src="https://js.arcgis.com/3.31/"></script>
+      // When the layer loads, set sublayer definition/filter
+      dynLayer.on("load", function() {
+        // Inspect sublayers to see which index corresponds to parcels or features with city name
+        // For example, assume sublayer index 0 or 2 etc
+        
+        var defs = [];
+        // Suppose sublayer 2 is Parcels with city field “CITY_NAME”
+        // We will filter that sublayer only to King
+        defs[2] = "CITY_NAME = 'King'";  
+        // If there are others you wish to filter, add them similarly
+        // e.g. defs[3] = "CITY_NAME = 'King'"
 
-    <script src="js/utils.js" type="text/javascript"></script>
-    <script src="assets/Stokes/config.js"></script>
-    <script src="assets/Stokes/LayerConfig.js"></script>
-    <script src="assets/Stokes/SearchConfig.js"></script>
+        dynLayer.setLayerDefinitions(defs);
+      });
 
-    <script type="text/javascript">
+      map.addLayer(dynLayer);
 
+      // Optionally add a legend
+      var legend = new Legend({
+        map: map,
+        layerInfos: [
+          { layer: dynLayer, title: "Stokes GIS (filtered to King)" }
+        ]
+      }, "legendDiv");
+      map.on("layers-add-result", function() {
+        legend.startup();
+      });
 
-        //$.fn.bootstrapBtn = $.fn.button.noConflict();
-        require([
-            "dojo/ready",
-            "extras/CountyMapViewer",
-            "esri/request"
-        ],
-            function (
-                ready,
-                CountyMapViewer,
-                esriRequest
-            ) {
+    });
+  </script>
 
-                var mapViewer;
-                ready(function () {
-
-                    mapViewer = new CountyMapViewer(options);
-                    mapViewer.startUp();
-
-                   
-
-                })
-            });
-
-
-    </script>
+  <div id="legendDiv" style="position: absolute; bottom: 10px; right: 10px; background: white; padding: 5px;"></div>
 </body>
 </html>
