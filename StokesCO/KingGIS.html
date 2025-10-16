@@ -1,0 +1,128 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge, chrome=1'>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+   
+    <!-- On iOS, as part of optimizing your web application, have it use the
+    standalone mode to look more like a native application. When you use this
+    standalone mode, Safari is not used to display the web content�specifically,
+    there is no browser URL text field at the top of the screen or button bar
+    at the bottom of the screen. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- Controls the dimensions and scaling of the browser this in iOS,
+    Android, webOS, Opera Mini, Opera Mobile and Blackberry. width: controls
+    the width of the viewport initial-scale: controls the zoom level when the
+    page is first loaded maximum-scale: control how users are allowed to zoom
+    the page in or out user-scalable: control how users are allowed to zoom
+    the page in or out -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <!-- Sets the style of the status bar for a web application when in standalone mode -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>Stokes County, North Carolina GIS</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.31/dijit/themes/claro/claro.css">
+    <!--<link href="dojo-theme-flat-master/CSS/dojo/flat.css" rel="stylesheet" />-->
+    <link rel="stylesheet" href="https://js.arcgis.com/3.31/esri/css/esri.css">
+    <link rel="stylesheet" href="css/layout.css" />
+    <link href="css/bootstrap.css" rel="stylesheet" />
+    <link href="js/bootstrap-dialog/css/bootstrap-dialog.min.css" rel="stylesheet" />
+
+    <style type="text/css">
+        #main-loading {
+            background-color: #428bca;
+        }
+    </style>
+    <script type="text/javascript">
+        var path_location = location.pathname.replace(/\/[^/]+$/, '');
+        if (path_location == '/') {
+            path_location = "";
+        }
+        var dojoConfig = {
+            parseOnLoad: true,
+            cacheBust: true,
+            packages: [
+                {
+                    name: "extras",
+                    location: path_location + "/extras"
+                }
+            ]
+        };
+
+    </script>
+
+</head>
+
+<body class="claro">
+
+
+    <div id="main-loading">
+
+        <!-- This is section you can modify to customize the loading page -->
+        <div id="app-loading"></div>
+        <div id="loading-gif"></div>
+
+        <!-- //////////////////    END    ////////////////////////////// -->
+        <div id="ie-note" style="display:none;">
+            <div class="hint-title">Error</div>
+            <div class="hint-img">Your browser is currently not supported.</div>
+            <p class="hint-text">
+                <span>
+                    Please note that creating presentations is not supported in Internet Explorer versions 6, 7.
+                </span>
+                <br>
+                <span>
+                    We recommend upgrading to the latest Internet Explorer, Google Chrome, or Firefox.
+                </span>
+                <br>
+                <span>
+                    If you are using IE 8 or later, make sure you turn off "Compatibility View".
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-dialog/js/bootstrap-dialog.min.js"></script>
+    <script>
+        $.fn.bootstrapBtn = $.fn.button.noConflict();
+    </script>
+    <script type="text/javascript" src="https://js.arcgis.com/3.31/"></script>
+
+    <script src="js/utils.js" type="text/javascript"></script>
+    <script src="assets/Stokes/config.js"></script>
+    <script src="assets/Stokes/LayerConfig.js"></script>
+    <script src="assets/Stokes/SearchConfig.js"></script>
+
+    <script type="text/javascript">
+
+
+        //$.fn.bootstrapBtn = $.fn.button.noConflict();
+        require([
+            "dojo/ready",
+            "extras/CountyMapViewer",
+            "esri/request"
+        ],
+            function (
+                ready,
+                CountyMapViewer,
+                esriRequest
+            ) {
+
+                var mapViewer;
+                ready(function () {
+
+                    mapViewer = new CountyMapViewer(options);
+                    mapViewer.startUp();
+
+                   
+
+                })
+            });
+
+
+    </script>
+</body>
+</html>
