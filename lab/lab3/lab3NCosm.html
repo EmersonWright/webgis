@@ -1,0 +1,43 @@
+<head>
+  <title>Lab3: Web-based Mapping Using OpenLayers</title>
+  <script src="https://cdn.jsdelivr.net/npm/ol@v10.6.1/dist/ol.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.6.1/ol.css" />
+  <style>
+    .map {
+      width: 800px;
+      height: 600px;
+      border: 1px solid #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h3>Lab 3: Web-based Mapping Using OpenLayers</h3>
+  <h4>Author: Emerson Wright</h4>
+
+  <div id="map" class="map"></div>
+
+  <script>
+
+    var osm = new ol.layer.Tile({
+      source: new ol.source.OSM()
+    });
+    var map = new ol.Map({
+      target: 'map',
+      layers: [osm],
+      view: new ol.View({
+        projection: 'EPSG:3857',
+        center: [-10997148, 4569099],
+        zoom: 4
+      })
+    });
+    var ncExtent4326 = [-84.3219, 33.8423, -75.4001, 36.5880];
+
+    var ncExtent3857 = ol.proj.transformExtent(ncExtent4326, 'EPSG:4326', 'EPSG:3857');
+    map.getView().fit(ncExtent3857, {
+      size: map.getSize(),
+      padding: [20, 20, 20, 20],
+      duration: 300
+    });
+  </script>
+</body>
+</html>
