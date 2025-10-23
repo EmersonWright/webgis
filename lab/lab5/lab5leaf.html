@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Leaflet Web App with States WMS Layer</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    #legend {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 13px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    label {
+      margin-right: 15px;
+    }
+    .leaflet-control-scale {
+      bottom: 10px !important;
+      right: 10px !important;
+      left: auto !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <strong>Basemap:</strong>
+    <label><input type="radio" name="basemap" value="osm" checked> OSM</label>
+    <label><input type="radio" name="basemap" value="esri"> ESRI Imagery</label>
+
+    <label style="margin-left: 20px;">
+      <input type="checkbox" id="wmsToggle" checked> Show States Layer
+    </label>
+  </div>
+
+  <div id="map"></div>
+  <div id="legend">
+    <strong>Legend:</strong><br>
+    <img src="https://ahocevar.com/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&LAYER=topp:states" alt="States Legend">
+  </div>
+
+  <script>
+    // Initialize map
+    const map = L.map('map', {
+      center: [39.8283, -98.5795], // Continental US
+      zoom: 4
+    });
+
+    // Define basemaps
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const esriLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri'
+    });
+
+    // WMS Layer for States
+    const wmsLayer = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
+      layers: 'topp:states',
+      format: 'image/png',
+      transparent: true,
+      version: '1.1.1',
+      attribution: 'States Layer (GeoServer)',
+      crs: L.CRS.EPSG4326
+    });
+
+    wmsLayer.setZIndex(10);
+    map.addLayer(wmsLayer);
+
+    // Basemap switcher
+    document.querySelectorAll('input[name="basemap"]').forEach(radio => {
+      radio.addEventListener('change', (event) => {
+        const selected = event.target.value;
+        if (selected === 'osm') {
+          map.addLayer(osmLayer);
+          map.removeLayer(esriLayer);
+        } else {
+          map.addLayer(esriLayer);
+          map.removeLayer(osmLayer);
+        }
+        wmsLayer.bringToFront();
+      });
+    });
+
+    // WMS toggle
+    document.getElementById('wmsToggle').addEventListener('change', (event) => {
+      if (event.target.checked) {
+        map.addLayer(wmsLayer);
+        wmsLayer.bringToFront();
+        document.getElementById('legend').style.display = 'block';
+      } else {
+        map.removeLayer(wmsLayer);
+        document.getElementById('legend').style.display = 'none';
+      }
+    });
+
+    // Add scale control (bottom right)
+    L.control.scale({position: 'bottomright'}).addTo(map);
+  </script>
+</body>
+</html>
