@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>OpenLayers Map Switcher</title>
   <style>
     html, body {
@@ -11,15 +11,15 @@
     }
     #map {
       width: 100%;
-      height: 90%;
+      height: 90vh;
     }
     #controls {
       padding: 10px;
       background: #f0f0f0;
     }
   </style>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@latest/ol.css">
-  <script src="https://cdn.jsdelivr.net/npm/ol@latest/ol.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@latest/ol.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ol@latest/dist/ol.js"></script>
 </head>
 <body>
   <div id="controls">
@@ -44,7 +44,7 @@
       visible: false
     });
 
-    // WMS layer
+    // WMS Layer
     const wmsLayer = new ol.layer.Image({
       source: new ol.source.ImageWMS({
         url: 'https://ahocevar.com/geoserver/wms',
@@ -60,14 +60,15 @@
       visible: false
     });
 
-    // Map initialization
+    // Map setup
     const map = new ol.Map({
       target: 'map',
       layers: [osmLayer, esriLayer, wmsLayer],
       view: new ol.View({
         center: ol.proj.fromLonLat([-98.5795, 39.8283]), // Center on continental US
         zoom: 4
-      })
+      }),
+      renderer: 'canvas'
     });
 
     // Basemap switcher
