@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>South Carolina WFS Map</title>
 
-  <!-- OpenLayers CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.3.0/ol.css">
   <script src="https://cdn.jsdelivr.net/npm/ol@7.3.0/dist/ol.js"></script>
 
@@ -28,21 +27,21 @@
 
 <script>
 // ----------------------------
-// 1. WFS URL
+// 1. WFS URL (UPDATED TO HTTPS) 🔒
 // ----------------------------
 const wfsUrl =
-  "http://3.145.133.49:8080/geoserver/ewrigh58/ows?" +
+  "https://3.145.133.49:8080/geoserver/ewrigh58/ows?" +
   "service=WFS&version=1.1.0&request=GetFeature&" +
   "typename=ewrigh58:lidar_stream&" +
-  "outputFormat=application/json&srsname=EPSG:4326";
+  "outputFormat=application/json&srsname=EPSG:4326"; // <-- Changed 'http' to 'https'
 
 // ----------------------------
 // 2. WFS Source (GeoJSON)
 // ----------------------------
 const wfsSource = new ol.source.Vector({
   format: new ol.format.GeoJSON({
-    dataProjection: "EPSG:4326",     // GeoServer output (lon/lat)
-    featureProjection: "EPSG:3857"   // Convert to Web Mercator
+    dataProjection: "EPSG:4326",    // GeoServer output (lon/lat)
+    featureProjection: "EPSG:3857"  // Convert to Web Mercator
   }),
   url: wfsUrl,
   strategy: ol.loadingstrategy.all
@@ -87,7 +86,8 @@ const map = new ol.Map({
 wfsSource.on("change", function () {
   if (wfsSource.getState() === "ready") {
     const extent = wfsSource.getExtent();
-    if (extent) {
+    // Only attempt to fit if the extent is valid (not null/undefined/empty)
+    if (extent && extent[0] !== Infinity) { 
       map.getView().fit(extent, { padding: [50, 50, 50, 50] });
     }
   }
